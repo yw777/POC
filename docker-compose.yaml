@@ -1,0 +1,71 @@
+version: "2"
+
+services:
+  # database
+  demo-mysql:
+    image: mysql:5.5
+    restart: always
+    ports:
+      - "3306:3306"
+    networks:
+      site:
+        aliases:
+          - mysql
+          - demo-mysql
+    environment:
+      MYSQL_DATABASE: $DB_NAME
+      MYSQL_ROOT_PASSWORD: $DB_PASSWORD
+    mem_limit: 300M
+
+  # adminPortal
+  admin-portal:
+    depends_on:
+      - demo-mysql
+    image: admin-portal
+    restart: always
+    networks:
+      site:
+        aliases:
+          - admin
+          - admin-portal
+    ports:
+      - "8081:8081"
+    environment:
+      PROTOCOL: $PROTOCOL
+      DB_HOST: $DB_HOST
+      DB_PORT: $DB_PORT
+      DB_NAME: $DB_NAME
+      DB_USERNAME: $DB_USERNAME
+      DB_PASSWORD: $DB_PASSWORD
+      EMAIL_USERNAME: $EMAIL_USERNAME
+      EMAIL_PASSWORD: $EMAIL_PASSWORD
+    mem_limit: 250M
+
+  # bookstore
+  bookstore:
+    depends_on:
+      - demo-mysql
+      - admin-portal
+    image: bookstore
+    restart: always
+    networks:
+      site:
+        aliases:
+          - store
+    ports:
+      - "8080:8080"
+    environment:
+      PROTOCOL: $PROTOCOL
+      DB_HOST: $DB_HOST
+      DB_PORT: $DB_PORT
+      DB_NAME: $DB_NAME
+      DB_USERNAME: $DB_USERNAME
+      DB_PASSWORD: $DB_PASSWORD
+      EMAIL_USERNAME: $EMAIL_USERNAME
+      EMAIL_PASSWORD: $EMAIL_PASSWORD
+      ADMIN_HOST: $ADMIN_HOST
+      ADMIN_PORT: $ADMIN_PORT
+    mem_limit: 300M
+networks:
+  site:
+    driver: bridge
